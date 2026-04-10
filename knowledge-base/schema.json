@@ -1,0 +1,22 @@
+{
+  "node_label": "Knowledge",
+  "properties": {
+    "id": "string, unique identifier e.g. biochem-01",
+    "name": "string, 知识点名称",
+    "level": "int, 1=章, 2=节, 3=小节",
+    "domain": "string, 学科域 = 生物化学",
+    "chapter": "int, 章号",
+    "section_code": "string, e.g. 2.3.1",
+    "importance": "int 1-5, 考纲重要度(待标注)",
+    "description": "string, 待补充",
+    "prerequisites": ["id list"],
+    "related": ["id list"],
+    "tags": ["string list"],
+    "source": "生物化学教材(目录)"
+  },
+  "relationship_types": {
+    "PREREQUISITE": "学习B之前需要掌握A",
+    "CONTAINS": "父节点包含子节点(章→节→小节)",
+    "RELATED": "知识关联(跨章节)"
+  }
+}
