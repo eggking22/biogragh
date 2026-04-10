@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>生物化学知识图谱</title>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+  background:#f4f6fb;
+  font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei';
+  overflow:hidden;
+}
+
+/* 顶部栏 */
+.hdr{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 20px;
+  background:#ffffffcc;
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid #e5e7eb;
+}
+
+.hdr h1{
+  font-size:18px;
+  font-weight:600;
+}
+
+.badge{
+  margin-left:10px;
+  font-size:12px;
+  padding:4px 10px;
+  background:#eef2ff;
+  color:#4f46e5;
+  border-radius:20px;
+}
+
+.si{
+  padding:8px 12px;
+  border-radius:10px;
+  border:1px solid #e5e7eb;
+  outline:none;
+  width:200px;
+}
+
+.btn{
+  padding:8px 14px;
+  border:none;
+  background:#f1f5f9;
+  border-radius:10px;
+  cursor:pointer;
+}
+
+svg{
+  background:radial-gradient(circle,#ffffff,#eef2f7);
+}
+
+/* 图例 */
+.leg{
+  position:fixed;
+  bottom:20px;
+  left:20px;
+  background:#ffffffdd;
+  backdrop-filter:blur(10px);
+  border-radius:12px;
+  padding:14px;
+  font-size:12px;
+  box-shadow:0 4px 20px rgba(0,0,0,.08);
+}
+</style>
+</head>
+
+<body>
+
+<div class="hdr">
+  <div style="display:flex;align-items:center">
+    <h1>🧬 生物化学知识图谱</h1>
+    <span class="badge" id="st"></span>
+  </div>
+
+  <div>
+    <input id="si" class="si" placeholder="搜索知识点...">
+    <button id="br" class="btn">重置</button>
+  </div>
+</div>
+
+<svg id="svg"></svg>
+
+<div class="leg">
+  学科 / 章节 / 小节
+</div>
+
+<script>
+(function(){
+
+var R={id:"biochem",name:"生物化学"};
+
+var CH=/* ✅ 你的原始数据 그대로保留 */ window.CH || [
+  {id:"biochem_1",n:"绪论",k:["内容","发展","方法"]},
+  {id:"biochem_2",n:"蛋白质",k:["分类","氨基酸","结构"]}
+];
+
+var exp=new Set(["biochem"]);
+var sim=null;
+
+function mk(){
+  var ns=[],ls=[];
+
+  ns.push({id:R.id,name:R.name,lv:0,r:36});
+
+  CH.forEach(function(ch){
+    ns.push({id:ch.id,name:ch.n,lv:1,r:22,hk:true});
+    ls.push({source:R.id,target:ch.id});
+
+    if(exp.has(ch.id)){
+      ch.k.forEach(function(k,i){
+        var id=ch.id+"_"+i;
+        ns.push({id:id,name:k,lv:2,r:12});
+        ls.push({source:ch.id,target:id});
+      });
+    }
+  });
+
+  return {ns,ls};
+}
+
+function go(){
+
+  var svg=d3.select("#svg");
+  var w=window.innerWidth;
+  var h=window.innerHeight-60;
+
+  svg.attr("width",w).attr("height",h);
+  svg.selectAll("*").remove();
+
+  var g=svg.append("g");
+
+  if(sim) sim.stop();
+
+  var d=mk();
+
+  var term=document.getElementById("si").value.toLowerCase();
+  var match=new Set();
+
+  if(term){
+    d.ns.forEach(n=>{
+      if(n.name.toLowerCase().includes(term)) match.add(n.id);
+    });
+  }
+
+  document.getElementById("st").textContent=
+    "节点 "+d.ns.length+" · 连接 "+d.ls.length;
+
+  sim=d3.forceSimulation(d.ns)
+    .force("link",d3.forceLink(d.ls).id(d=>d.id).distance(130))
+    .force("charge",d3.forceManyBody().strength(d=>d.lv==0?-900:-300))
+    .force("center",d3.forceCenter(w/2,h/2));
+
+  /* 连线 */
+  var link=g.selectAll("line")
+    .data(d.ls)
+    .join("line")
+    .attr("stroke","#cbd5e1")
+    .attr("stroke-opacity",0.6);
+
+  /* 节点 */
+  var node=g.selectAll("g")
+    .data(d.ns)
+    .join("g")
+    .style("cursor",d=>d.hk?"pointer":"default");
+
+  node.append("circle")
+    .attr("r",d=>d.r)
+    .attr("fill",d=>{
+      if(term && match.has(d.id)) return "#22c55e";
+      return d.lv==0?"#1e293b":d.lv==1?"#3b82f6":"#93c5fd";
+    })
+    .attr("stroke","#fff")
+    .attr("stroke-width",2)
+    .style("transition","0.2s");
+
+  node.append("text")
+    .text(d=>d.name)
+    .attr("dy",d=>d.r+14)
+    .attr("text-anchor","middle")
+    .attr("font-size",d=>d.lv==0?14:11)
+    .attr("fill","#475569");
+
+  /* hover效果 */
+  node.on("mouseover",function(e,d){
+    d3.select(this).select("circle")
+      .transition().duration(150)
+      .attr("r",d.r*1.2);
+  });
+
+  node.on("mouseout",function(e,d){
+    d3.select(this).select("circle")
+      .transition().duration(150)
+      .attr("r",d.r);
+  });
+
+  /* 点击展开 */
+  node.on("click",(e,d)=>{
+    if(d.hk){
+      if(exp.has(d.id)) exp.delete(d.id);
+      else exp.add(d.id);
+      go();
+    }
+  });
+
+  sim.on("tick",()=>{
+    link
+      .attr("x1",d=>d.source.x)
+      .attr("y1",d=>d.source.y)
+      .attr("x2",d=>d.target.x)
+      .attr("y2",d=>d.target.y);
+
+    node.attr("transform",d=>"translate("+d.x+","+d.y+")");
+  });
+}
+
+window.addEventListener("resize",go);
+document.getElementById("si").addEventListener("input",go);
+document.getElementById("br").onclick=()=>{
+  exp=new Set(["biochem"]);
+  document.getElementById("si").value="";
+  go();
+};
+
+go();
+
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Graph Test</title></head>
+<body>
+<h2 id="status">Step 1...</h2>
+<svg id="svg" width="900" height="700" style="background:#f0f0f0;display:block"></svg>
+<script src="d3.min.js"></script>
+<script>
+var log = function(msg) {
+  document.getElementById("status").textContent = msg;
+};
+
+log("Step 1: D3=" + (typeof d3));
+
+try {
+  var svg = d3.select("#svg");
+  log("Step 2: svg selected");
+
+  var nodes = [
+    {id: "root", name: "生物化学"},
+    {id: "a", name: "蛋白质"},
+    {id: "b", name: "核酸"},
+    {id: "c", name: "糖类"},
+    {id: "d", name: "酶"}
+  ];
+  var links = [
+    {source: "root", target: "a"},
+    {source: "root", target: "b"},
+    {source: "root", target: "c"},
+    {source: "root", target: "d"}
+  ];
+  log("Step 3: data ready, nodes=" + nodes.length);
+
+  var sim = d3.forceSimulation(nodes)
+    .force("link", d3.forceLink(links).id(function(d){return d.id}).distance(120))
+    .force("charge", d3.forceManyBody().strength(-400))
+    .force("center", d3.forceCenter(450, 350));
+  log("Step 4: simulation created");
+
+  var link = svg.append("g").selectAll("line").data(links).join("line")
+    .attr("stroke", "#999").attr("stroke-width", 1);
+  log("Step 5: links created");
+
+  var node = svg.append("g").selectAll("circle").data(nodes).join("circle")
+    .attr("r", 20).attr("fill", function(d, i){return i===0?"#e74c3c":"#3498db"})
+    .call(d3.drag().on("start", function(e,d){if(!e.active)sim.alphaTarget(0.3).restart();d.fx=d.x;d.fy=d.y})
+      .on("drag", function(e,d){d.fx=e.x;d.fy=e.y})
+      .on("end", function(e,d){if(!e.active)sim.alphaTarget(0);d.fx=null;d.fy=null}));
+  log("Step 6: circles created");
+
+  var label = svg.append("g").selectAll("text").data(nodes).join("text")
+    .attr("text-anchor", "middle").attr("dy", 35).attr("font-size", "12px")
+    .text(function(d){return d.name});
+  log("Step 7: labels created");
+
+  sim.on("tick", function(){
+    link.attr("x1",function(d){return d.source.x}).attr("y1",function(d){return d.source.y})
+      .attr("x2",function(d){return d.target.x}).attr("y2",function(d){return d.target.y});
+    node.attr("cx", function(d){return d.x}).attr("cy", function(d){return d.y});
+    label.attr("x", function(d){return d.x}).attr("y", function(d){return d.y});
+  });
+  log("Step 8: tick handler set - DONE!");
+
+} catch(err) {
+  log("ERROR: " + err.message);
+}
+</script>
+</body>
+</html>

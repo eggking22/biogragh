@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Test</title></head>
+<body>
+<h1 id="title">Loading...</h1>
+<svg id="svg" width="800" height="600" style="background:#f0f0f0;display:block"></svg>
+<script src="d3.min.js"></script>
+<script>
+document.getElementById("title").textContent = "D3 loaded: " + (typeof d3 !== "undefined");
+var svg = d3.select("#svg");
+svg.append("circle").attr("cx",400).attr("cy",300).attr("r",50).attr("fill","red");
+svg.append("text").attr("x",400).attr("y",310).attr("text-anchor","middle").attr("fill","white").text("OK");
+</script>
+</body>
+</html>

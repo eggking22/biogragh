@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>生物化学知识图谱</title>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#f4f6fb;font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei';overflow:hidden}
+.hdr{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;background:#ffffffcc;backdrop-filter:blur(10px);border-bottom:1px solid #e5e7eb}
+.hdr h1{font-size:18px;font-weight:600}
+.badge{margin-left:10px;font-size:12px;padding:4px 10px;background:#eef2ff;color:#4f46e5;border-radius:20px}
+.si{padding:8px 12px;border-radius:10px;border:1px solid #e5e7eb;outline:none;width:200px}
+.btn{padding:8px 14px;border:none;background:#f1f5f9;border-radius:10px;cursor:pointer}
+svg{background:radial-gradient(circle,#ffffff,#eef2f7)}
+.leg{position:fixed;bottom:20px;left:20px;background:#ffffffdd;backdrop-filter:blur(10px);border-radius:12px;padding:14px 16px;font-size:13px;box-shadow:0 4px 20px rgba(0,0,0,.08);user-select:none}
+.leg-title{font-weight:600;margin-bottom:8px;font-size:12px;color:#64748b}
+.leg-item{display:flex;align-items:center;gap:8px;padding:5px 6px;border-radius:8px;cursor:pointer;transition:background .15s;margin-bottom:2px}
+.leg-item:hover{background:#f1f5f9}
+.leg-item.active{background:#f0f4ff}
+.leg-dot{width:14px;height:14px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.15);flex-shrink:0}
+.leg-item.disabled .leg-dot{opacity:.3}
+.leg-item.disabled .leg-label{text-decoration:line-through;opacity:.4}
+.leg-label{flex:1}
+.leg-check{font-size:11px;color:#22c55e;opacity:0;transition:opacity .15s}
+.leg-item.active .leg-check{opacity:1}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div style="display:flex;align-items:center">
+    <h1>🧬 生物化学知识图谱</h1>
+    <span class="badge" id="st"></span>
+  </div>
+  <div>
+    <input id="si" class="si" placeholder="搜索知识点...">
+    <button id="br" class="btn">重置</button>
+  </div>
+</div>
+
+<svg id="svg"></svg>
+<div class="leg" id="legend"></div>
+
+<script>
+(function(){
+
+var R={id:"biochem",name:"生物化学"};
+
+/* ========== 严格按教材目录 X / X.X 两级 ========== */
+var CH=[
+  {id:"ch1",n:"1 绪论",k:[
+    "1.1 生物化学的内容",
+    "1.2 生物化学的产生与发展",
+    "1.3 生物化学的知识框架和学习方法"
+  ]},
+  {id:"ch2",n:"2 蛋白质",k:[
+    "2.1 蛋白质的分类",
+    "2.2 蛋白质的组成单位——氨基酸",
+    "2.3 肽",
+    "2.4 蛋白质的结构",
+    "2.5 蛋白质结构与功能的关系",
+    "2.6 蛋白质的性质与分离、分析技术"
+  ]},
+  {id:"ch3",n:"3 核酸",k:[
+    "3.1 核酸的组成成分",
+    "3.2 核酸的一级结构",
+    "3.3 DNA的二级结构",
+    "3.4 DNA的高级结构",
+    "3.5 DNA和基因组",
+    "3.6 RNA的结构和功能",
+    "3.7 核酸的性质和研究方法",
+    "3.8 核酸的序列测定"
+  ]},
+  {id:"ch4",n:"4 糖类",k:[
+    "4.1 单糖",
+    "4.2 重要单糖及其衍生物",
+    "4.3 寡糖",
+    "4.4 多糖",
+    "4.5 糖复合物",
+    "4.6 糖类研究方法"
+  ]},
+  {id:"ch5",n:"5 脂质和生物膜",k:[
+    "5.1 三酰甘油",
+    "5.2 脂肪酸",
+    "5.3 磷脂",
+    "5.4 鞘脂",
+    "5.5 类固醇",
+    "5.6 生物膜"
+  ]},
+  {id:"ch6",n:"6 酶",k:[
+    "6.1 酶的概念与特点",
+    "6.2 酶的化学本质与组成",
+    "6.3 酶的命名与分类",
+    "6.4 酶的结构与功能",
+    "6.5 酶的专一性",
+    "6.6 酶的作用机制",
+    "6.7 酶促反应动力学",
+    "6.8 影响酶促反应速率的因素",
+    "6.9 酶活性的调节",
+    "6.10 酶的研究方法与酶工程"
+  ]},
+  {id:"ch7",n:"7 维生素和辅酶",k:[
+    "7.1 脂溶性维生素",
+    "7.2 水溶性维生素"
+  ]},
+  {id:"ch8",n:"8 新陈代谢总论与生物氧化",k:[
+    "8.1 新陈代谢总论",
+    "8.2 生物氧化"
+  ]},
+  {id:"ch9",n:"9 糖代谢",k:[
+    "9.1 多糖和低聚糖的酶促降解",
+    "9.2 糖的分解代谢",
+    "9.3 糖的合成代谢"
+  ]},
+  {id:"ch10",n:"10 脂质代谢",k:[
+    "10.1 脂质的酶促水解",
+    "10.2 三酰甘油的分解代谢",
+    "10.3 三酰甘油的合成代谢",
+    "10.4 磷脂的代谢",
+    "10.5 胆固醇的代谢"
+  ]},
+  {id:"ch11",n:"11 蛋白质的降解和氨基酸代谢",k:[
+    "11.1 蛋白质的酶促降解",
+    "11.2 氨基酸的分解代谢",
+    "11.3 氨基酸合成代谢"
+  ]},
+  {id:"ch12",n:"12 核苷酸代谢",k:[
+    "12.1 核酸的酶促降解",
+    "12.2 核苷酸的分解",
+    "12.3 核苷酸的生物合成",
+    "12.4 核苷酸生物合成的调节",
+    "12.5 核苷酸合成的抗代谢物",
+    "12.6 辅酶核苷酸的生物合成"
+  ]},
+  {id:"ch13",n:"13 DNA的生物合成",k:[
+    "13.1 DNA复制的概况",
+    "13.2 原核生物DNA的复制",
+    "13.3 真核生物DNA的复制",
+    "13.4 逆转录作用",
+    "13.5 DNA的损伤与修复",
+    "13.6 DNA重组和克隆"
+  ]},
+  {id:"ch14",n:"14 RNA的生物合成",k:[
+    "14.1 RNA生物合成的概况",
+    "14.2 原核生物的转录",
+    "14.3 真核生物的转录",
+    "14.4 原核生物和真核生物转录调控的特点",
+    "14.5 转录的选择性抑制",
+    "14.6 转录产物的加工",
+    "14.7 RNA的复制"
+  ]},
+  {id:"ch15",n:"15 蛋白质的生物合成",k:[
+    "15.1 蛋白质合成体系",
+    "15.2 蛋白质的合成过程",
+    "15.3 蛋白质合成后的加工",
+    "15.4 蛋白质合成所需的能量",
+    "15.5 蛋白质的定向转运",
+    "15.6 蛋白质合成的抑制剂",
+    "15.7 寡肽的生物合成"
+  ]},
+  {id:"ch16",n:"16 物质代谢的调节控制",k:[
+    "16.1 物质代谢的相互联系",
+    "16.2 分子水平的调节",
+    "16.3 细胞水平的调节",
+    "16.4 多细胞整体水平的调节"
+  ]}
+];
+
+var totalK=CH.reduce(function(s,c){return s+c.k.length},0);
+
+var exp=new Set(["biochem"]);
+var sim=null;
+var lvVisible={0:true,1:true,2:true};
+
+var lvMeta=[
+  {lv:0,name:"学科",color:"#1e293b"},
+  {lv:1,name:"章 (共"+CH.length+"章)",color:"#3b82f6"},
+  {lv:2,name:"节 (共"+totalK+"节)",color:"#93c5fd"}
+];
+
+function renderLegend(){
+  var el=document.getElementById("legend");
+  var h='<div class="leg-title">点击切换显示层级</div>';
+  lvMeta.forEach(function(m){
+    var cls=lvVisible[m.lv]?'leg-item active':'leg-item disabled';
+    h+='<div class="'+cls+'" data-lv="'+m.lv+'">'+
+      '<span class="leg-dot" style="background:'+m.color+'"></span>'+
+      '<span class="leg-label">'+m.name+'</span>'+
+      '<span class="leg-check">'+(lvVisible[m.lv]?'✓':'')+'</span></div>';
+  });
+  el.innerHTML=h;
+  el.querySelectorAll('.leg-item').forEach(function(item){
+    item.onclick=function(){
+      var lv=+this.getAttribute('data-lv');
+      if(lv===0) return;
+      lvVisible[lv]=!lvVisible[lv];
+      if(lv===1 && !lvVisible[1]) exp=new Set(["biochem"]);
+      renderLegend();
+      go();
+    };
+  });
+}
+
+function mk(){
+  var ns=[],ls=[];
+  if(lvVisible[0]) ns.push({id:R.id,name:R.name,lv:0,r:38});
+  CH.forEach(function(ch){
+    if(lvVisible[1]){
+      ns.push({id:ch.id,name:ch.n,lv:1,r:22,hk:true});
+      if(lvVisible[0]) ls.push({source:R.id,target:ch.id});
+    }
+    if(lvVisible[2] && exp.has(ch.id)){
+      ch.k.forEach(function(k,i){
+        var id=ch.id+"_"+i;
+        ns.push({id:id,name:k,lv:2,r:12});
+        if(lvVisible[1]) ls.push({source:ch.id,target:id});
+      });
+    }
+  });
+  return {ns:ns,ls:ls};
+}
+
+function go(){
+  var svg=d3.select("#svg");
+  var w=window.innerWidth;
+  var h=window.innerHeight-60;
+  svg.attr("width",w).attr("height",h);
+  svg.selectAll("*").remove();
+  var g=svg.append("g");
+
+  var zoom=d3.zoom().scaleExtent([0.2,5])
+    .on("zoom",function(e){g.attr("transform",e.transform)});
+  svg.call(zoom);
+
+  if(sim) sim.stop();
+  var d=mk();
+
+  var term=document.getElementById("si").value.toLowerCase();
+  var match=new Set();
+  if(term) d.ns.forEach(function(n){
+    if(n.name.toLowerCase().includes(term)) match.add(n.id);
+  });
+
+  document.getElementById("st").textContent="节点 "+d.ns.length+" · 连接 "+d.ls.length;
+
+  sim=d3.forceSimulation(d.ns)
+    .force("link",d3.forceLink(d.ls).id(function(d){return d.id}).distance(120))
+    .force("charge",d3.forceManyBody().strength(function(d){return d.lv==0?-1200:d.lv==1?-400:-100}))
+    .force("center",d3.forceCenter(w/2,h/2));
+
+  var link=g.selectAll("line").data(d.ls).join("line")
+    .attr("stroke","#cbd5e1").attr("stroke-opacity",0.6);
+
+  var node=g.selectAll("g").data(d.ns).join("g")
+    .style("cursor",function(d){return d.hk?"pointer":"default"});
+
+  node.append("circle")
+    .attr("r",function(d){return d.r})
+    .attr("fill",function(d){
+      if(term && match.has(d.id)) return "#22c55e";
+      return d.lv==0?"#1e293b":d.lv==1?"#3b82f6":"#93c5fd";
+    })
+    .attr("stroke","#fff").attr("stroke-width",2);
+
+  node.append("text")
+    .text(function(d){return d.name})
+    .attr("dy",function(d){return d.r+14})
+    .attr("text-anchor","middle")
+    .attr("font-size",function(d){return d.lv==0?14:d.lv==1?11:10})
+    .attr("fill","#475569")
+    .style("pointer-events","none");
+
+  node.on("mouseover",function(e,d){
+    d3.select(this).select("circle").transition().duration(150).attr("r",d.r*1.2);
+  });
+  node.on("mouseout",function(e,d){
+    d3.select(this).select("circle").transition().duration(150).attr("r",d.r);
+  });
+  node.on("click",function(e,d){
+    if(d.hk){
+      if(exp.has(d.id)) exp.delete(d.id); else exp.add(d.id);
+      go();
+    }
+  });
+
+  sim.on("tick",function(){
+    link.attr("x1",function(d){return d.source.x}).attr("y1",function(d){return d.source.y})
+      .attr("x2",function(d){return d.target.x}).attr("y2",function(d){return d.target.y});
+    node.attr("transform",function(d){return "translate("+d.x+","+d.y+")"});
+  });
+}
+
+renderLegend();
+window.addEventListener("resize",go);
+document.getElementById("si").addEventListener("input",go);
+document.getElementById("br").onclick=function(){
+  exp=new Set(["biochem"]);
+  document.getElementById("si").value="";
+  lvVisible={0:true,1:true,2:true};
+  renderLegend();
+  go();
+};
+go();
+
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>生物化学知识图谱</title>
+
+<style>
+body{margin:0;background:#f8f9fa;font-family:sans-serif;overflow:hidden}
+.hdr{padding:10px;background:#fff;border-bottom:1px solid #ddd}
+svg{display:block}
+</style>
+
+<!-- ✅ 使用 CDN -->
+<script src="https://d3js.org/d3.v7.min.js"></script>
+
+</head>
+<body>
+
+<div class="hdr">
+  <input id="si" placeholder="搜索...">
+  <button id="br">重置</button>
+  <span id="st"></span>
+</div>
+
+<svg id="svg"></svg>
+
+<script>
+(function(){
+
+var R={id:"biochem",name:"生物化学"};
+
+var CH=[
+ {id:"biochem_1",n:"绪论",k:["内容","发展","学习方法"]},
+ {id:"biochem_2",n:"蛋白质",k:["分类","氨基酸","结构"]},
+ {id:"biochem_3",n:"核酸",k:["DNA","RNA"]}
+];
+
+var exp=new Set(["biochem"]);
+var sim=null;
+
+function mk(){
+  var ns=[],ls=[];
+
+  // ✅ 确保 root 一定存在
+  if(!exp.has("biochem")){
+    exp.add("biochem");
+  }
+
+  ns.push({id:R.id,name:R.name,lv:0,r:30});
+
+  CH.forEach(function(ch){
+    ns.push({id:ch.id,name:ch.n,lv:1,r:20,hk:true});
+    ls.push({source:R.id,target:ch.id});
+
+    if(exp.has(ch.id)){
+      ch.k.forEach(function(k,i){
+        var id=ch.id+"_"+i;
+        ns.push({id:id,name:k,lv:2,r:10});
+        ls.push({source:ch.id,target:id});
+      });
+    }
+  });
+
+  return {ns,ls};
+}
+
+function go(){
+
+  var svg=d3.select("#svg");
+  var w=window.innerWidth;
+  var h=window.innerHeight-50;
+
+  svg.attr("width",w).attr("height",h);
+  svg.selectAll("*").remove();
+
+  var g=svg.append("g");
+
+  if(sim) sim.stop();
+
+  var d=mk();
+
+  document.getElementById("st").textContent=
+    "节点:"+d.ns.length+" 连接:"+d.ls.length;
+
+  sim=d3.forceSimulation(d.ns)
+    .force("link",d3.forceLink(d.ls).id(d=>d.id).distance(120))
+    .force("charge",d3.forceManyBody().strength(-300))
+    .force("center",d3.forceCenter(w/2,h/2));  // ✅ 核心修复
+
+  var link=g.selectAll("line")
+    .data(d.ls)
+    .join("line")
+    .attr("stroke","#999");
+
+  var node=g.selectAll("g")
+    .data(d.ns)
+    .join("g")
+    .call(d3.drag()
+      .on("start",(e,d)=>{
+        if(!e.active) sim.alphaTarget(0.3).restart();
+        d.fx=d.x; d.fy=d.y;
+      })
+      .on("drag",(e,d)=>{
+        d.fx=e.x; d.fy=e.y;
+      })
+      .on("end",(e,d)=>{
+        if(!e.active) sim.alphaTarget(0);
+        d.fx=null; d.fy=null;
+      })
+    );
+
+  node.append("circle")
+    .attr("r",d=>d.r)
+    .attr("fill",d=>d.lv==0?"#2c3e50":d.lv==1?"#3498db":"#85c1e9");
+
+  node.append("text")
+    .text(d=>d.name)
+    .attr("dy",4)
+    .attr("x",15)
+    .style("font-size","12px");
+
+  node.on("click",(e,d)=>{
+    if(d.hk){
+      if(exp.has(d.id)) exp.delete(d.id);
+      else exp.add(d.id);
+      go();
+    }
+  });
+
+  sim.on("tick",()=>{
+    link
+      .attr("x1",d=>d.source.x)
+      .attr("y1",d=>d.source.y)
+      .attr("x2",d=>d.target.x)
+      .attr("y2",d=>d.target.y);
+
+    node.attr("transform",d=>"translate("+d.x+","+d.y+")");
+  });
+}
+
+window.addEventListener("resize",go);
+document.getElementById("br").onclick=()=>{exp=new Set(["biochem"]);go();}
+
+go();
+
+})();
+</script>
+
+</body>
+</html>

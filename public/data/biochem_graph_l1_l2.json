@@ -1,0 +1,209 @@
+{
+  "domain": "生物化学",
+  "color": "#E74C3C",
+  "nodes": [
+    {
+      "id": "biochem",
+      "name": "生物化学",
+      "level": 0,
+      "children": [
+        {
+          "id": "biochem_1",
+          "name": "绪论",
+          "level": 1,
+          "children": [
+            { "id": "biochem_1_1", "name": "生物化学的内容", "level": 2 },
+            { "id": "biochem_1_2", "name": "生物化学的产生与发展", "level": 2 },
+            { "id": "biochem_1_3", "name": "生物化学的知识框架和学习方法", "level": 2 }
+          ]
+        },
+        {
+          "id": "biochem_2",
+          "name": "蛋白质",
+          "level": 1,
+          "children": [
+            { "id": "biochem_2_1", "name": "蛋白质的分类", "level": 2 },
+            { "id": "biochem_2_2", "name": "蛋白质的组成单位——氨基酸", "level": 2 },
+            { "id": "biochem_2_3", "name": "肽", "level": 2 },
+            { "id": "biochem_2_4", "name": "蛋白质的结构", "level": 2 },
+            { "id": "biochem_2_5", "name": "蛋白质结构与功能的关系", "level": 2 },
+            { "id": "biochem_2_6", "name": "蛋白质的性质与分离、分析技术", "level": 2 }
+          ]
+        },
+        {
+          "id": "biochem_3",
+          "name": "核酸",
+          "level": 1,
+          "children": [
+            { "id": "biochem_3_1", "name": "核酸的组成成分", "level": 2 },
+            { "id": "biochem_3_2", "name": "核酸的一级结构", "level": 2 },
+            { "id": "biochem_3_3", "name": "DNA的二级结构", "level": 2 },
+            { "id": "biochem_3_4", "name": "DNA的高级结构", "level": 2 },
+            { "id": "biochem_3_5", "name": "DNA和基因组", "level": 2 },
+            { "id": "biochem_3_6", "name": "RNA的结构和功能", "level": 2 },
+            { "id": "biochem_3_7", "name": "核酸的性质和研究方法", "level": 2 },
+            { "id": "biochem_3_8", "name": "核酸的序列测定", "level": 2 }
+          ]
+        },
+        {
+          "id": "biochem_4",
+          "name": "糖类",
+          "level": 1,
+          "children": [
+            { "id": "biochem_4_1", "name": "单糖", "level": 2 },
+            { "id": "biochem_4_2", "name": "重要单糖及其衍生物", "level": 2 },
+            { "id": "biochem_4_3", "name": "寡糖", "level": 2 },
+            { "id": "biochem_4_4", "name": "多糖", "level": 2 },
+            { "id": "biochem_4_5", "name": "糖复合物", "level": 2 },
+            { "id": "biochem_4_6", "name": "糖类研究方法", "level": 2 }
+          ]
+        },
+        {
+          "id": "biochem_5",
+          "name": "脂质和生物膜",
+          "level": 1,
+          "children": [
+            { "id": "biochem_5_1", "name": "三酰甘油", "level": 2 },
+            { "id": "biochem_5_2", "name": "脂肪酸", "level": 2 },
+            { "id": "biochem_5_3", "name": "磷脂", "level": 2 },
+            { "id": "biochem_5_4", "name": "鞘脂", "level": 2 },
+            { "id": "biochem_5_5", "name": "类固醇", "level": 2 },
+            { "id": "biochem_5_6", "name": "生物膜", "level": 2 }
+          ]
+        },
+        {
+          "id": "biochem_6",
+          "name": "酶",
+          "level": 1,
+          "children": [
+            { "id": "biochem_6_1", "name": "酶的概念与特点", "level": 2 },
+            { "id": "biochem_6_2", "name": "酶的化学本质与组成", "level": 2 },
+            { "id": "biochem_6_3", "name": "酶的命名与分类", "level": 2 },
+            { "id": "biochem_6_4", "name": "酶的结构与功能", "level": 2 },
+            { "id": "biochem_6_5", "name": "酶的专一性", "level": 2 },
+            { "id": "biochem_6_6", "name": "酶的作用机制", "level": 2 },
+            { "id": "biochem_6_7", "name": "酶促反应动力学", "level": 2 },
+            { "id": "biochem_6_8", "name": "影响酶促反应速率的因素", "level": 2 },
+            { "id": "biochem_6_9", "name": "酶活性的调节", "level": 2 },
+            { "id": "biochem_6_10", "name": "酶的研究方法与酶工程", "level": 2 }
+          ]
+        },
+        {
+          "id": "biochem_7",
+          "name": "维生素和辅酶",
+          "level": 1,
+          "children": [
+            { "id": "biochem_7_1", "name": "脂溶性维生素", "level": 2 },
+            { "id": "biochem_7_2", "name": "水溶性维生素", "level": 2 }
+          ]
+        },
+        {
+          "id": "biochem_8",
+          "name": "新陈代谢总论与生物氧化",
+          "level": 1,
+          "children": [
+            { "id": "biochem_8_1", "name": "新陈代谢总论", "level": 2 },
+            { "id": "biochem_8_2", "name": "生物氧化", "level": 2 }
+          ]
+        },
+        {
+          "id": "biochem_9",
+          "name": "糖代谢",
+          "level": 1,
+          "children": [
+            { "id": "biochem_9_1", "name": "多糖和低聚糖的酶促降解", "level": 2 },
+            { "id": "biochem_9_2", "name": "糖的分解代谢", "level": 2 },
+            { "id": "biochem_9_3", "name": "糖的合成代谢", "level": 2 }
+          ]
+        },
+        {
+          "id": "biochem_10",
+          "name": "脂质代谢",
+          "level": 1,
+          "children": [
+            { "id": "biochem_10_1", "name": "脂质的酶促水解", "level": 2 },
+            { "id": "biochem_10_2", "name": "三酰甘油的分解代谢", "level": 2 },
+            { "id": "biochem_10_3", "name": "三酰甘油的合成代谢", "level": 2 },
+            { "id": "biochem_10_4", "name": "磷脂的代谢", "level": 2 },
+            { "id": "biochem_10_5", "name": "胆固醇的代谢", "level": 2 }
+          ]
+        },
+        {
+          "id": "biochem_11",
+          "name": "蛋白质的降解和氨基酸代谢",
+          "level": 1,
+          "children": [
+            { "id": "biochem_11_1", "name": "蛋白质的酶促降解", "level": 2 },
+            { "id": "biochem_11_2", "name": "氨基酸的分解代谢", "level": 2 },
+            { "id": "biochem_11_3", "name": "氨基酸合成代谢", "level": 2 }
+          ]
+        },
+        {
+          "id": "biochem_12",
+          "name": "核苷酸代谢",
+          "level": 1,
+          "children": [
+            { "id": "biochem_12_1", "name": "核酸的酶促降解", "level": 2 },
+            { "id": "biochem_12_2", "name": "核苷酸的分解", "level": 2 },
+            { "id": "biochem_12_3", "name": "核苷酸的生物合成", "level": 2 },
+            { "id": "biochem_12_4", "name": "核苷酸生物合成的调节", "level": 2 },
+            { "id": "biochem_12_5", "name": "核苷酸合成的抗代谢物", "level": 2 },
+            { "id": "biochem_12_6", "name": "辅酶核苷酸的生物合成", "level": 2 }
+          ]
+        },
+        {
+          "id": "biochem_13",
+          "name": "DNA的生物合成",
+          "level": 1,
+          "children": [
+            { "id": "biochem_13_1", "name": "DNA复制的概况", "level": 2 },
+            { "id": "biochem_13_2", "name": "原核生物DNA的复制", "level": 2 },
+            { "id": "biochem_13_3", "name": "真核生物DNA的复制", "level": 2 },
+            { "id": "biochem_13_4", "name": "逆转录作用", "level": 2 },
+            { "id": "biochem_13_5", "name": "DNA的损伤与修复", "level": 2 },
+            { "id": "biochem_13_6", "name": "DNA重组和克隆", "level": 2 }
+          ]
+        },
+        {
+          "id": "biochem_14",
+          "name": "RNA的生物合成",
+          "level": 1,
+          "children": [
+            { "id": "biochem_14_1", "name": "RNA生物合成的概况", "level": 2 },
+            { "id": "biochem_14_2", "name": "原核生物的转录", "level": 2 },
+            { "id": "biochem_14_3", "name": "真核生物的转录", "level": 2 },
+            { "id": "biochem_14_4", "name": "原核生物和真核生物转录调控的特点", "level": 2 },
+            { "id": "biochem_14_5", "name": "转录的选择性抑制", "level": 2 },
+            { "id": "biochem_14_6", "name": "转录产物的加工", "level": 2 },
+            { "id": "biochem_14_7", "name": "RNA的复制", "level": 2 }
+          ]
+        },
+        {
+          "id": "biochem_15",
+          "name": "蛋白质的生物合成",
+          "level": 1,
+          "children": [
+            { "id": "biochem_15_1", "name": "蛋白质合成体系", "level": 2 },
+            { "id": "biochem_15_2", "name": "蛋白质的合成过程", "level": 2 },
+            { "id": "biochem_15_3", "name": "蛋白质合成后的加工", "level": 2 },
+            { "id": "biochem_15_4", "name": "蛋白质合成所需的能量", "level": 2 },
+            { "id": "biochem_15_5", "name": "蛋白质的定向转运", "level": 2 },
+            { "id": "biochem_15_6", "name": "蛋白质合成的抑制剂", "level": 2 },
+            { "id": "biochem_15_7", "name": "寡肽的生物合成", "level": 2 }
+          ]
+        },
+        {
+          "id": "biochem_16",
+          "name": "物质代谢的调节控制",
+          "level": 1,
+          "children": [
+            { "id": "biochem_16_1", "name": "物质代谢的相互联系", "level": 2 },
+            { "id": "biochem_16_2", "name": "分子水平的调节", "level": 2 },
+            { "id": "biochem_16_3", "name": "细胞水平的调节", "level": 2 },
+            { "id": "biochem_16_4", "name": "多细胞整体水平的调节", "level": 2 }
+          ]
+        }
+      ]
+    }
+  ]
+}
