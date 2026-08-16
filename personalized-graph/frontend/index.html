@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>个性化图谱 Demo</title>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, "Microsoft YaHei", sans-serif; background: #1a1a2e; color: #e0e0e0; }
+
+.header {
+  padding: 16px 24px;
+  background: #16213e;
+  display: flex; align-items: center; gap: 16px;
+  border-bottom: 1px solid #0f3460;
+}
+.header h1 { font-size: 18px; color: #e94560; }
+.header button {
+  padding: 6px 16px; border: none; border-radius: 4px;
+  background: #e94560; color: white; cursor: pointer; font-size: 14px;
+}
+.header button:hover { background: #c73550; }
+
+.container { display: flex; height: calc(100vh - 56px); }
+
+#graph-area {
+  flex: 1; position: relative; overflow: hidden;
+}
+#graph-area svg { width: 100%; height: 100%; }
+
+.sidebar {
+  width: 320px; background: #16213e; padding: 16px;
+  overflow-y: auto; border-left: 1px solid #0f3460;
+}
+.sidebar h2 { font-size: 16px; color: #e94560; margin-bottom: 12px; }
+
+.legend {
+  display: flex; flex-direction: column; gap: 6px;
+  margin-bottom: 20px; padding: 12px; background: #1a1a2e; border-radius: 8px;
+}
+.legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.legend-dot { width: 14px; height: 14px; border-radius: 50%; }
+
+.stats {
+  margin-bottom: 20px; padding: 12px; background: #1a1a2e; border-radius: 8px;
+}
+.stats h3 { font-size: 14px; color: #aaa; margin-bottom: 8px; }
+.stat-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; }
+
+.kp-list { display: flex; flex-direction: column; gap: 6px; }
+.kp-card {
+  padding: 10px; background: #1a1a2e; border-radius: 8px;
+  border-left: 3px solid transparent; cursor: pointer; transition: background 0.2s;
+}
+.kp-card:hover { background: #222244; }
+.kp-card .name { font-weight: 600; font-size: 14px; }
+.kp-card .detail { font-size: 12px; color: #aaa; margin-top: 4px; }
+
+#tooltip {
+  position: absolute; padding: 8px 12px; background: rgba(0,0,0,0.85);
+  border-radius: 6px; font-size: 13px; pointer-events: none; display: none;
+  z-index: 100; max-width: 200px;
+}
+
+.node-label { fill: #e0e0e0; font-size: 11px; pointer-events: none; text-anchor: middle; }
+
+/* 过滤按钮 */
+.filters { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+.filter-btn {
+  padding: 3px 10px; border-radius: 12px; border: 1px solid #444;
+  background: transparent; color: #ccc; cursor: pointer; font-size: 12px;
+}
+.filter-btn.active { border-color: #e94560; color: #e94560; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🧬 个性化知识图谱</h1>
+  <input id="apiBase" value="http://localhost:8001" style="padding:6px 10px;border:1px solid #444;border-radius:4px;background:#1a1a2e;color:#e0e0e0;width:200px;font-size:13px;" placeholder="API 地址">
+  <input id="studentId" value="stu_demo" style="padding:6px 10px;border:1px solid #444;border-radius:4px;background:#1a1a2e;color:#e0e0e0;width:120px;font-size:13px;" placeholder="学生ID">
+  <button onclick="loadGraph()">加载图谱</button>
+  <button onclick="seedAndLoad()">演示数据 + 加载</button>
+</div>
+
+<div class="container">
+  <div id="graph-area">
+    <svg id="graph-svg"></svg>
+    <div id="tooltip"></div>
+  </div>
+
+  <div class="sidebar">
+    <h2>📊 图例</h2>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#4CAF50"></div> 已掌握 (≥85%)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#FFC107"></div> 较熟悉 (60-85%)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#FF9800"></div> 较薄弱 (30-60%)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#F44336"></div> 严重不足 (<30%)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#9E9E9E"></div> 未测试</div>
+    </div>
+
+    <h2>📈 统计</h2>
+    <div class="stats" id="stats-area">点击"加载图谱"查看数据</div>
+
+    <h2>🔍 筛选</h2>
+    <div class="filters" id="filters">
+      <button class="filter-btn active" data-level="all" onclick="setFilter('all', this)">全部</button>
+      <button class="filter-btn" data-level="mastered" onclick="setFilter('mastered', this)">已掌握</button>
+      <button class="filter-btn" data-level="familiar" onclick="setFilter('familiar', this)">熟悉</button>
+      <button class="filter-btn" data-level="weak" onclick="setFilter('weak', this)">薄弱</button>
+      <button class="filter-btn" data-level="critical" onclick="setFilter('critical', this)">严重不足</button>
+    </div>
+
+    <h2>📝 知识点列表</h2>
+    <div class="kp-list" id="kp-list"></div>
+  </div>
+</div>
+
+<script>
+const API_BASE = () => document.getElementById('apiBase').value;
+let graphData = null;
+let simulation = null;
+let currentFilter = 'all';
+
+async function seedAndLoad() {
+  try {
+    await fetch(`${API_BASE()}/api/demo/seed`).then(r => r.json());
+  } catch(e) {}
+  await loadGraph();
+}
+
+async function loadGraph() {
+  const sid = document.getElementById('studentId').value;
+  try {
+    const res = await fetch(`${API_BASE()}/api/student/${sid}/personalized-graph`);
+    graphData = await res.json();
+    renderGraph();
+    renderSidebar();
+  } catch(e) {
+    alert('加载失败: ' + e.message + '\n确保后端已启动 (uvicorn main:app --port 8001)');
+  }
+}
+
+function renderGraph() {
+  const svg = d3.select('#graph-svg');
+  svg.selectAll('*').remove();
+
+  const width = document.getElementById('graph-area').clientWidth;
+  const height = document.getElementById('graph-area').clientHeight;
+
+  svg.attr('viewBox', [0, 0, width, height]);
+
+  const g = svg.append('g');
+
+  // 缩放
+  const zoom = d3.zoom().scaleExtent([0.3, 4]).on('zoom', (e) => g.attr('transform', e.transform));
+  svg.call(zoom);
+
+  // 过滤
+  let visibleNodes = graphData.nodes;
+  if (currentFilter !== 'all') {
+    visibleNodes = graphData.nodes.filter(n => n.level === currentFilter);
+  }
+  const visibleIds = new Set(visibleNodes.map(n => n.id));
+  const visibleEdges = graphData.edges.filter(e => visibleIds.has(e.source) || visibleIds.has(e.target));
+
+  // 箭头
+  svg.append('defs').append('marker')
+    .attr('id', 'arrowhead')
+    .attr('viewBox', '0 -5 10 10')
+    .attr('refX', 25).attr('refY', 0)
+    .attr('markerWidth', 6).attr('markerHeight', 6)
+    .attr('orient', 'auto')
+    .append('path').attr('d', 'M0,-5L10,0L0,5').attr('fill', '#555');
+
+  // 边
+  const links = g.append('g').selectAll('line')
+    .data(visibleEdges)
+    .join('line')
+    .attr('stroke', '#333')
+    .attr('stroke-width', 1.5)
+    .attr('marker-end', 'url(#arrowhead)');
+
+  // 节点大小：做题越多越大
+  const nodeSize = d3.scaleSqrt().domain([0, d3.max(visibleNodes, d => d.total) || 1]).range([12, 35]);
+
+  // 节点
+  const nodes = g.append('g').selectAll('g')
+    .data(visibleNodes)
+    .join('g')
+    .call(d3.drag()
+      .on('start', dragStarted)
+      .on('drag', dragged)
+      .on('end', dragEnded));
+
+  nodes.append('circle')
+    .attr('r', d => nodeSize(d.total || 1))
+    .attr('fill', d => d.color)
+    .attr('stroke', d => d.level === 'critical' ? '#ff0000' : 'transparent')
+    .attr('stroke-width', d => d.level === 'critical' ? 2 : 0)
+    .style('cursor', 'pointer');
+
+  nodes.append('text')
+    .attr('class', 'node-label')
+    .attr('dy', d => nodeSize(d.total || 1) + 14)
+    .text(d => d.name);
+
+  // Tooltip
+  nodes.on('mouseover', (e, d) => {
+    const tooltip = document.getElementById('tooltip');
+    tooltip.innerHTML = `<strong>${d.name}</strong><br>正确率: ${d.total > 0 ? Math.round(d.accuracy*100) + '%' : '未测试'}<br>做题数: ${d.total}<br>状态: ${levelLabel(d.level)}`;
+    tooltip.style.display = 'block';
+    tooltip.style.left = (e.offsetX + 15) + 'px';
+    tooltip.style.top = (e.offsetY - 10) + 'px';
+  }).on('mouseout', () => {
+    document.getElementById('tooltip').style.display = 'none';
+  });
+
+  // 力仿真
+  simulation = d3.forceSimulation(visibleNodes)
+    .force('link', d3.forceLink(visibleEdges).id((d, i) => {
+      // 处理 source/target 可能已经是对象的情况
+      if (typeof d === 'object') return d.id;
+      return d;
+    }).distance(120))
+    .force('charge', d3.forceManyBody().strength(-400))
+    .force('center', d3.forceCenter(width/2, height/2))
+    .force('collision', d3.forceCollide().radius(d => nodeSize(d.total || 1) + 10))
+    .on('tick', () => {
+      links
+        .attr('x1', d => d.source.x).attr('y1', d => d.source.y)
+        .attr('x2', d => d.target.x).attr('y2', d => d.target.y);
+      nodes.attr('transform', d => `translate(${d.x},${d.y})`);
+    });
+}
+
+function levelLabel(level) {
+  return {mastered:'已掌握', familiar:'较熟悉', weak:'较薄弱', critical:'严重不足', untested:'未测试'}[level] || level;
+}
+
+function renderSidebar() {
+  if (!graphData) return;
+
+  // 统计
+  const s = graphData.summary;
+  const total = Object.values(s).reduce((a,b)=>a+b, 0);
+  document.getElementById('stats-area').innerHTML = `
+    <div class="stat-row"><span>知识点总数</span><span>${total}</span></div>
+    <div class="stat-row"><span style="color:#4CAF50">✅ 已掌握</span><span>${s.mastered}</span></div>
+    <div class="stat-row"><span style="color:#FFC107">🟡 较熟悉</span><span>${s.familiar}</span></div>
+    <div class="stat-row"><span style="color:#FF9800">🟠 较薄弱</span><span>${s.weak}</span></div>
+    <div class="stat-row"><span style="color:#F44336">🔴 严重不足</span><span>${s.critical}</span></div>
+    <div class="stat-row"><span>⚪ 未测试</span><span>${s.untested}</span></div>
+  `;
+
+  // 知识点列表（按掌握度排序）
+  const sorted = [...graphData.nodes].sort((a,b) => a.accuracy - b.accuracy);
+  document.getElementById('kp-list').innerHTML = sorted.map(n => `
+    <div class="kp-card" style="border-left-color:${n.color}">
+      <div class="name">${n.name}</div>
+      <div class="detail">${levelLabel(n.level)} · 正确率 ${n.total > 0 ? Math.round(n.accuracy*100)+'%' : '-'} · ${n.total}题</div>
+    </div>
+  `).join('');
+}
+
+function setFilter(level, btn) {
+  currentFilter = level;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (graphData) renderGraph();
+}
+
+function dragStarted(e, d) {
+  if (!e.active) simulation.alphaTarget(0.3).restart();
+  d.fx = d.x; d.fy = d.y;
+}
+function dragged(e, d) { d.fx = e.x; d.fy = e.y; }
+function dragEnded(e, d) {
+  if (!e.active) simulation.alphaTarget(0);
+  d.fx = null; d.fy = null;
+}
+</script>
+</body>
+</html>

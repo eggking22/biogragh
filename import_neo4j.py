@@ -2,6 +2,7 @@
 Neo4j 导入脚本 - 生物化学知识图谱
 用法:
   1. Docker 启动 Neo4j: docker run -d --name neo4j-bio -p 7474:7474 -p 7687:7687 -e NEO4J_AUTH=neo4j/bio123456 neo4j:5
+  or "docker run -d --name neo4j-bio -p 7474:7474 -p 7687:7687 -e NEO4J_AUTH=neo4j/BioGraph2026! neo4j:5"
   2. 安装依赖: pip install neo4j
   3. 运行: python import_neo4j.py
 """
@@ -10,7 +11,7 @@ import json
 from neo4j import GraphDatabase
 
 NEO4J_URI = "bolt://localhost:7687"
-NEO4J_AUTH = ("neo4j", "bio123456")
+NEO4J_AUTH = ("neo4j", "BioGraph2026!")
 DATA_FILE = "knowledge-base/verified/biochem-chapters.json"
 
 driver = GraphDatabase.driver(NEO4J_URI, auth=NEO4J_AUTH)
